@@ -54,7 +54,7 @@ namespace SkiPath
 
             Console.WriteLine("----------------------------------------------------");
 
-            var s = new SkiPathCalculator(arr, size, size);
+            var s = new SkiPathCalculator(arr, size, size, (current, next) => current>next);
 
             var start = DateTime.UtcNow;
             var max = s.GetMax();

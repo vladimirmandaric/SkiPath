@@ -13,23 +13,41 @@ namespace SkiPath
 
         private int SizeX, SizeY;
 
+        /// <summary>
+        /// pointing to the lowest node of the lognest path
+        /// </summary>
         private SkiTree Max = null;
 
+        /// <summary>
+        /// MaxDepth up till now
+        /// </summary>
         private int MaxDepth = 0;
 
+        /// <summary>
+        /// Max drop for max depth until now
+        /// </summary>
         private int MaxDrop = 0;
+
+        /// <summary>
+        /// First int is current point value, second is next point value in path
+        /// </summary>
+        private Func<int, int, bool> _isOnPathCondition;
 
         long count = 0;
 
-        public SkiPathCalculator(int[,] map, int sizeX, int sizeY)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="map">map</param>
+        /// <param name="sizeX">size X</param>
+        /// <param name="sizeY">size Y</param>
+        /// <param name="isOnPathCondition">First int is current point value, second is next point value in path</param>
+        public SkiPathCalculator(int[,] map, int sizeX, int sizeY, Func<int, int,bool> isOnPathCondition)
         {
             _map = map;
-            _shouldCheck = new bool[sizeX, sizeY];
-            for (var i = 0; i < sizeX; i++)
-                for (var j = 0; j < sizeY; j++)
-                    _shouldCheck[i,j]=true;
             SizeX = sizeX;
             SizeY = sizeY;
+            _isOnPathCondition = isOnPathCondition;
         }
 
         /// <summary>
@@ -41,7 +59,7 @@ namespace SkiPath
         {
             var l = new List<Point>();
             foreach (Point pp in Environment(p, SizeX, SizeY))
-                if (_map[pp.X,pp.Y] < _map[p.X,p.Y])
+                if (_isOnPathCondition(_map[p.X, p.Y], _map[pp.X, pp.Y]))
                     l.Add(pp);
             return l;
         }
@@ -91,14 +109,25 @@ namespace SkiPath
 
         public SkiTree GetMax()
         {
+            _shouldCheck = new bool[SizeX, SizeY];
+            for (var i = 0; i < SizeX; i++)
+                for (var j = 0; j < SizeY; j++)
+                    _shouldCheck[i, j] = true;
             MaxDepth = -1;
+
             for (var i = 0; i < SizeX; i++)
                 for (var j = 0; j < SizeY; j++)
                     GetGraphForPoint(new Point { X = i, Y = j });
             return Max;
         }
 
-
+        /// <summary>
+        /// iterator for points environment
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="wx"></param>
+        /// <param name="wy"></param>
+        /// <returns></returns>
         public static IEnumerable<Point> Environment(Point p, int wx, int wy)
         {
             if (p.X>0)
