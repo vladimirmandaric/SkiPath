@@ -33,7 +33,6 @@ namespace SkiPath
         /// </summary>
         private Func<int, int, bool> _isOnPathCondition;
 
-        long count = 0;
 
         /// <summary>
         /// 
@@ -42,11 +41,11 @@ namespace SkiPath
         /// <param name="sizeX">size X</param>
         /// <param name="sizeY">size Y</param>
         /// <param name="isOnPathCondition">First int is current point value, second is next point value in path</param>
-        public SkiPathCalculator(int[,] map, int sizeX, int sizeY, Func<int, int,bool> isOnPathCondition)
+        public SkiPathCalculator(int[,] map, Func<int, int,bool> isOnPathCondition)
         {
             _map = map;
-            SizeX = sizeX;
-            SizeY = sizeY;
+            SizeX = map.GetLength(0);
+            SizeY = map.GetLength(1);
             _isOnPathCondition = isOnPathCondition;
         }
 
@@ -79,9 +78,7 @@ namespace SkiPath
                 return null;
             if (parent != null)
                 _shouldCheck[p.X, p.Y] = false;
-
-            // count passes
-            count++;
+            
 
             var nexts = new List<SkiTree>();
             var g = new SkiTree
@@ -89,7 +86,7 @@ namespace SkiPath
                 Position = p,
                 Value = _map[p.X, p.Y],
                 Parent = parent,
-                Depth = parent==null ? 0 : parent.Depth+1,
+                Depth = parent==null ? 1 : parent.Depth+1,
                 HighestValue = highestValue==null ? _map[p.X, p.Y] : highestValue.Value
             };
             foreach (var pp in Find(p))

@@ -10,18 +10,46 @@ namespace SkiPath
     {
         static void Main(string[] args)
         {
-            var size = 1000;
-            bool write = false;
+            bool writeToConsole = false;            
 
-            int[,] arr = new int[size, size]; /*{
-                    { 2 , 3 , 4 , 6, 0 },
-                    { 1 , 3 , 4 , 8, 0 },
-                    { 2 , 17 , 16 , 9, 10 },
-                    { 2 , 18 , 15 , 14, 11 },
-                    { 2 , 19 , 20 , 13, 12 },
-                };*/
+            if (args.Count() == 0)
+            {
+                Console.Error.WriteLine("no file path given");
+                return;
+            }
 
-            var f = File.ReadAllText(@"C:\Users\vladimir.mandaric\Downloads\map.txt");
+            int[,] arr = ReadFile(args[0]);
+
+
+            Console.WriteLine("----------------------------------------------------");
+
+            var s = new SkiPathCalculator(arr,  (current, next) => current>next);
+            var max = s.GetMax();
+           
+            Console.WriteLine("\r\nLength {0}\r\nDrop {1}", max.Depth, max.Drop());
+
+            // output path
+            var currentNode = max;
+            var path = new List<int>();
+            while (currentNode != null)
+            {
+                path.Add(currentNode.Value);
+                currentNode = currentNode.Parent;
+            }
+            path.Reverse();
+
+            Console.Write("PATH: ");
+            foreach (var val in path)
+                Console.Write("{0} - ", val);
+
+            Console.ReadKey();
+        }
+
+
+        private static int[,] ReadFile(string path)
+        {
+            int[,] arr=null;
+            var f = File.ReadAllText(path);
 
             var ii = 0;
             foreach (var line in f.Split(new[] { '\n' }))
@@ -29,62 +57,19 @@ namespace SkiPath
                 var jj = 0;
                 if (ii == 0)
                 {
-                    ii++;
-                    continue;
+                    var val = line.Split(new[] { ' ' });
+                    arr = new int[Convert.ToInt32(val[0]), Convert.ToInt32(val[1])];                 
                 }
-                if (!string.IsNullOrEmpty(line.Trim()))
-                    foreach (var val in line.Split(new[] { ' ' }))
-                        arr[ii - 1, jj++] = Convert.ToInt32(val);
+                else
+                {
+                    if (!string.IsNullOrEmpty(line.Trim()))
+                        foreach (var val in line.Split(new[] { ' ' }))
+                            arr[ii - 1, jj++] = Convert.ToInt32(val);
+                }
                 ii++;
             }
 
-            Random rnd = new Random();
-
-            for (var i = 0; i < size; i++)
-            {
-                for (var j = 0; j < size; j++)
-                {
-                    //  arr[i, j] = rnd.Next(0, size*3);
-                    if (write)
-                        Console.Write(arr[i, j].ToString().PadRight(6));
-                }
-                if (write)
-                    Console.WriteLine();
-            }
-
-            Console.WriteLine("----------------------------------------------------");
-
-            var s = new SkiPathCalculator(arr, size, size, (current, next) => current>next);
-
-            var start = DateTime.UtcNow;
-            var max = s.GetMax();
-            var duration = (DateTime.UtcNow-start).TotalMilliseconds;
-
-            if (write)
-                for (var i = 0; i < size; i++)
-                {
-                    for (var j = 0; j < size; j++)
-                    {
-                        var pp = max;
-                        var ok = false;
-                        while (pp.Parent != null)
-                        {
-                            if (pp.Position.X == i && pp.Position.Y == j)
-                                ok = true;
-                            pp = pp.Parent;
-                        }
-                        if (pp.Position.X == i && pp.Position.Y == j)
-                            ok = true;
-                        if (ok)
-                            Console.Write(arr[i, j].ToString().PadRight(6));
-                        else
-                            Console.Write(" ".PadRight(6));
-                    }
-                    Console.WriteLine();
-                }
-
-            Console.WriteLine("FIN");
-            Console.ReadKey();
+            return arr;
         }
     }
 }
